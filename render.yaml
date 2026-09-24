@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: the-super-girls-iot
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: API_KEY
+        value: supergirls_esp8266_token_secure

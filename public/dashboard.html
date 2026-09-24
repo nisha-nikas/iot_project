@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The super Girls - IoT Dashboard</title>
+  <meta name="description" content="Environment Monitoring and Hardware Automation IoT Dashboard - The super Girls">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN for Environment Graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand & Project Title -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-100">
+          <i data-lucide="cpu" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">The super Girls</h1>
+          <div class="flex items-center space-x-2 mt-0.5">
+            <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">IoT Control Hub</span>
+            <span class="text-slate-300">&bull;</span>
+            <span class="text-[11px] font-medium text-slate-500">Asia/Kolkata (+5:30)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Sync Status & User Profile -->
+      <div class="flex items-center space-x-3 sm:space-x-5">
+        <!-- 10s Polling Countdown Pill -->
+        <div class="hidden md:flex items-center space-x-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 text-xs text-slate-600">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span>
+          <span>Auto-Sync in <strong id="sync-timer-counter" class="text-indigo-600 font-mono">10s</strong></span>
+        </div>
+
+        <!-- Manual Refresh Button -->
+        <button onclick="refreshDashboardData()" title="Refresh now" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded-xl transition">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+
+        <!-- User Info & Logout -->
+        <div class="flex items-center pl-3 border-l border-slate-200 space-x-3">
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold text-xs flex items-center justify-center">
+              <span id="user-initials">SG</span>
+            </div>
+            <span id="user-display-name" class="hidden sm:inline-block text-xs font-semibold text-slate-700">Engineer</span>
+          </div>
+          <button onclick="handleLogout()" title="Logout" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Navigation Tabs (Tab 1, Tab 2, Tab 3) -->
+    <div class="border-t border-slate-200 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex space-x-2 sm:space-x-8" aria-label="Tabs">
+          
+          <!-- Tab 1: Environment Monitoring -->
+          <button id="nav-tab-1" onclick="switchDashboardTab(1)" 
+            class="tab-btn active border-b-2 border-indigo-600 text-indigo-600 py-3.5 px-2 sm:px-3 text-sm font-semibold flex items-center space-x-2 transition">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+            <span>Environment Monitoring</span>
+            <span class="ml-1 text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold">10s</span>
+          </button>
+
+          <!-- Tab 2: Smart LCD -->
+          <button id="nav-tab-2" onclick="switchDashboardTab(2)" 
+            class="tab-btn border-b-2 border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300 py-3.5 px-2 sm:px-3 text-sm font-semibold flex items-center space-x-2 transition">
+            <i data-lucide="monitor" class="w-4 h-4"></i>
+            <span>Smart LCD</span>
+            <span class="ml-1 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">16x2</span>
+          </button>
+
+          <!-- Tab 3: LED Automation -->
+          <button id="nav-tab-3" onclick="switchDashboardTab(3)" 
+            class="tab-btn border-b-2 border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300 py-3.5 px-2 sm:px-3 text-sm font-semibold flex items-center space-x-2 transition">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>LED Automation</span>
+            <span id="tab-led-pill" class="ml-1 text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-bold">OFF</span>
+          </button>
+
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: ENVIRONMENT MONITORING (DHT11 SENSOR DATA EVERY 10 SEC)  -->
+    <!-- ============================================================== -->
+    <div id="tab-content-1" class="space-y-8">
+      
+      <!-- Top Overview Bar & Simulator Modal Trigger -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 flex items-center">
+            <i data-lucide="gauge" class="w-5 h-5 mr-2 text-indigo-600"></i>
+            DHT11 Real-Time Telemetry
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Automatic data capture from ESP8266 (Pin D5 / GPIO 14) every 10 seconds.
+          </p>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <!-- ESP8266 Test Reading Simulator Button -->
+          <button onclick="simulateDht11Data()" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded-xl transition">
+            <i data-lucide="flask-conical" class="w-3.5 h-3.5 mr-1.5 text-indigo-600"></i>
+            Simulate Reading
+          </button>
+          
+          <div class="text-right">
+            <span class="text-[11px] text-slate-400 block">Last Recorded (IST)</span>
+            <span id="stat-last-time" class="text-xs font-bold text-slate-700 font-mono">--:--:-- --</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 1: INNOVATIVE DISPLAY (GAUGE / SEEK BAR STRUCTURE) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- TEMPERATURE GAUGE & SEEK BAR CARD -->
+        <div class="white-card rounded-2xl p-6 relative overflow-hidden">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+                <i data-lucide="thermometer" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-900 text-base">Temperature</h3>
+                <p class="text-xs text-slate-500">DHT11 Digital Thermometer</p>
+              </div>
+            </div>
+            <span id="temp-status-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+              Optimal
+            </span>
+          </div>
+
+          <!-- Circular SVG Gauge -->
+          <div class="flex flex-col items-center justify-center py-2">
+            <div class="relative w-48 h-48 flex items-center justify-center">
+              <svg class="w-48 h-48 gauge-svg" viewBox="0 0 160 160">
+                <!-- Background track -->
+                <circle class="gauge-bg" cx="80" cy="80" r="65" stroke-width="12" fill="none" stroke-dasharray="408.4" stroke-dashoffset="0"></circle>
+                <!-- Dynamic progress stroke -->
+                <circle id="temp-gauge-circle" class="gauge-progress" cx="80" cy="80" r="65" stroke-width="12" fill="none" 
+                  stroke="url(#tempGradient)" stroke-dasharray="408.4" stroke-dashoffset="408.4"></circle>
+                
+                <!-- SVG Linear Gradient for Temperature -->
+                <defs>
+                  <linearGradient id="tempGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#38bdf8" />
+                    <stop offset="50%" stop-color="#f59e0b" />
+                    <stop offset="100%" stop-color="#ef4444" />
+                  </linearGradient>
+                </defs>
+              </svg>
+
+              <!-- Central Metric Readout -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span id="gauge-temp-value" class="text-4xl font-extrabold text-slate-900 tracking-tight font-mono">--.-</span>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-0.5">&deg;C Celsius</span>
+              </div>
+            </div>
+
+            <!-- Seek Bar Structure for Temperature (0 to 50 °C) -->
+            <div class="w-full mt-6 space-y-2">
+              <div class="flex justify-between text-xs font-semibold text-slate-500">
+                <span>0&deg;C (Min)</span>
+                <span class="text-slate-800 font-bold" id="temp-seekbar-label">--.- &deg;C</span>
+                <span>50&deg;C (Max)</span>
+              </div>
+              <div class="seek-track">
+                <div id="temp-seek-bar" class="seek-thumb bg-gradient-to-r from-sky-400 via-amber-400 to-rose-500" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Aggregate Stats Footnote -->
+            <div class="grid grid-cols-3 gap-2 w-full mt-6 pt-4 border-t border-slate-100 text-center">
+              <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
+                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Min</span>
+                <span id="stat-min-temp" class="text-xs font-bold text-slate-700 font-mono">-- &deg;C</span>
+              </div>
+              <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
+                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Average</span>
+                <span id="stat-avg-temp" class="text-xs font-bold text-indigo-600 font-mono">-- &deg;C</span>
+              </div>
+              <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
+                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Max</span>
+                <span id="stat-max-temp" class="text-xs font-bold text-slate-700 font-mono">-- &deg;C</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- HUMIDITY GAUGE & SEEK BAR CARD -->
+        <div class="white-card rounded-2xl p-6 relative overflow-hidden">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center border border-cyan-200">
+                <i data-lucide="droplets" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-900 text-base">Humidity</h3>
+                <p class="text-xs text-slate-500">DHT11 Relative Hygrometer</p>
+              </div>
+            </div>
+            <span id="hum-status-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-100 text-cyan-800 border border-cyan-200">
+              Normal
+            </span>
+          </div>
+
+          <!-- Circular SVG Gauge -->
+          <div class="flex flex-col items-center justify-center py-2">
+            <div class="relative w-48 h-48 flex items-center justify-center">
+              <svg class="w-48 h-48 gauge-svg" viewBox="0 0 160 160">
+                <!-- Background track -->
+                <circle class="gauge-bg" cx="80" cy="80" r="65" stroke-width="12" fill="none" stroke-dasharray="408.4" stroke-dashoffset="0"></circle>
+                <!-- Dynamic progress stroke -->
+                <circle id="hum-gauge-circle" class="gauge-progress" cx="80" cy="80" r="65" stroke-width="12" fill="none" 
+                  stroke="url(#humGradient)" stroke-dasharray="408.4" stroke-dashoffset="408.4"></circle>
+                
+                <!-- SVG Linear Gradient for Humidity -->
+                <defs>
+                  <linearGradient id="humGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#a7f3d0" />
+                    <stop offset="60%" stop-color="#06b6d4" />
+                    <stop offset="100%" stop-color="#3b82f6" />
+                  </linearGradient>
+                </defs>
+              </svg>
+
+              <!-- Central Metric Readout -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span id="gauge-hum-value" class="text-4xl font-extrabold text-slate-900 tracking-tight font-mono">--.-</span>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-0.5">% Relative</span>
+              </div>
+            </div>
+
+            <!-- Seek Bar Structure for Humidity (0 to 100 %) -->
+            <div class="w-full mt-6 space-y-2">
+              <div class="flex justify-between text-xs font-semibold text-slate-500">
+                <span>0% (Dry)</span>
+                <span class="text-slate-800 font-bold" id="hum-seekbar-label">--.- %</span>
+                <span>100% (Saturated)</span>
+              </div>
+              <div class="seek-track">
+                <div id="hum-seek-bar" class="seek-thumb bg-gradient-to-r from-emerald-400 via-cyan-500 to-blue-600" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Aggregate Stats Footnote -->
+            <div class="grid grid-cols-3 gap-2 w-full mt-6 pt-4 border-t border-slate-100 text-center">
+              <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
+                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Min</span>
+                <span id="stat-min-hum" class="text-xs font-bold text-slate-700 font-mono">-- %</span>
+              </div>
+              <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
+                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Average</span>
+                <span id="stat-avg-hum" class="text-xs font-bold text-cyan-600 font-mono">-- %</span>
+              </div>
+              <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
+                <span class="text-[10px] text-slate-400 uppercase font-semibold block">Max</span>
+                <span id="stat-max-hum" class="text-xs font-bold text-slate-700 font-mono">-- %</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- HISTORICAL TRENDS GRAPH (CHART.JS) -->
+      <div class="white-card rounded-2xl p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 mb-4 gap-2">
+          <div>
+            <h3 class="font-bold text-slate-900 text-base flex items-center">
+              <i data-lucide="trending-up" class="w-4 h-4 mr-2 text-indigo-600"></i>
+              Real-Time Telemetry Graph
+            </h3>
+            <p class="text-xs text-slate-500">Live trends of Temperature (&deg;C) &amp; Humidity (%) over recent readings</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-[11px] font-semibold text-slate-500">Timezone: Asia/Kolkata (+5:30)</span>
+          </div>
+        </div>
+
+        <div class="relative h-64 sm:h-72 w-full">
+          <canvas id="dht11Chart"></canvas>
+        </div>
+      </div>
+
+      <!-- SECTION 2: SHOW SAVED RECORDS WITH PAGINATION -->
+      <div class="white-card rounded-2xl overflow-hidden">
+        
+        <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-slate-900 text-base flex items-center">
+              <i data-lucide="database" class="w-4 h-4 mr-2 text-indigo-600"></i>
+              Saved Sensor Records
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Showing latest records first (20 per page) &bull; TimeZone: +5:30 Asia/Kolkata
+            </p>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <span class="text-xs font-medium text-slate-500">
+              Total Records: <strong id="table-total-count" class="text-slate-800 font-mono">0</strong>
+            </span>
+          </div>
+        </div>
+
+        <!-- Records Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse sensor-table text-sm">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-bold text-slate-500 tracking-wider">
+                <th class="py-3.5 px-4 text-center">#</th>
+                <th class="py-3.5 px-4">Temperature</th>
+                <th class="py-3.5 px-4">Humidity</th>
+                <th class="py-3.5 px-4">Time (IST)</th>
+                <th class="py-3.5 px-4">Date</th>
+                <th class="py-3.5 px-4 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="records-table-body" class="divide-y divide-slate-100 font-medium text-slate-700">
+              <!-- Dynamically populated rows -->
+              <tr>
+                <td colspan="6" class="text-center py-8 text-slate-400">Loading sensor records...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="p-4 bg-slate-50/70 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-600">
+          <div>
+            Showing page <span id="current-page-num" class="font-bold text-indigo-600 font-mono">1</span> of <span id="total-pages-num" class="font-bold font-mono">1</span>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button id="btn-prev-page" onclick="goToPage(currentPage - 1)" disabled
+              class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center">
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5 mr-1"></i> Prev
+            </button>
+            <span id="pagination-pills" class="flex space-x-1">
+              <!-- Dynamic page pill numbers -->
+            </span>
+            <button id="btn-next-page" onclick="goToPage(currentPage + 1)" disabled
+              class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center">
+              Next <i data-lucide="chevron-right" class="w-3.5 h-3.5 ml-1"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: SMART LCD (16x2 I2C HARDWARE SYNC & VIRTUAL PREVIEW)    -->
+    <!-- ============================================================== -->
+    <div id="tab-content-2" class="space-y-8 hidden">
+      
+      <div class="white-card rounded-2xl p-6 sm:p-8">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-slate-100 gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200 shadow-sm">
+              <i data-lucide="monitor" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-slate-900">Smart LCD Controller (16x2)</h2>
+              <p class="text-xs text-slate-500">I2C Connected on Pins D1 (SCL) and D2 (SDA)</p>
+            </div>
+          </div>
+
+          <!-- Color Mode Toggle for LCD preview -->
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-slate-500 font-medium">Display Backlight:</span>
+            <button onclick="toggleLcdColorMode('green')" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300">Green</button>
+            <button onclick="toggleLcdColorMode('blue')" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-blue-100 text-blue-800 border border-blue-300">Blue</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6">
+          
+          <!-- LEFT: INPUT FORM -->
+          <div class="lg:col-span-6 space-y-5">
+            <form onsubmit="handleLcdUpdate(event)" class="space-y-5">
+              
+              <!-- ROW 1 INPUT -->
+              <div>
+                <div class="flex justify-between items-center mb-1.5">
+                  <label for="lcd-row-1" class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600 mr-2"></span>
+                    Row 1 Text (Max 16 Chars)
+                  </label>
+                  <span id="row1-counter" class="text-xs font-mono text-slate-400">0 / 16</span>
+                </div>
+                <div class="relative">
+                  <input type="text" id="lcd-row-1" maxlength="16" placeholder="Welcome to" 
+                    oninput="updateLcdPreview()"
+                    class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+                </div>
+              </div>
+
+              <!-- ROW 2 INPUT -->
+              <div>
+                <div class="flex justify-between items-center mb-1.5">
+                  <label for="lcd-row-2" class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600 mr-2"></span>
+                    Row 2 Text (Max 16 Chars)
+                  </label>
+                  <span id="row2-counter" class="text-xs font-mono text-slate-400">0 / 16</span>
+                </div>
+                <div class="relative">
+                  <input type="text" id="lcd-row-2" maxlength="16" placeholder="The super Girls" 
+                    oninput="updateLcdPreview()"
+                    class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+                </div>
+              </div>
+
+              <!-- UPDATE BUTTON -->
+              <button type="submit" id="lcd-update-btn" class="w-full flex items-center justify-center space-x-2 py-3.5 px-4 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition duration-150 shadow-md shadow-indigo-100">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                <span>Update Hardware LCD</span>
+              </button>
+
+            </form>
+
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+              <div class="font-bold text-slate-800 flex items-center">
+                <i data-lucide="info" class="w-3.5 h-3.5 mr-1.5 text-indigo-600"></i>
+                Hardware Synchronization
+              </div>
+              <p>Upon clicking Update, your text is stored in SQLite and pulled by the ESP8266 to refresh the 16x2 HD44780 I2C LCD screen.</p>
+            </div>
+          </div>
+
+          <!-- RIGHT: VIRTUAL 16x2 LCD DISPLAY PREVIEW -->
+          <div class="lg:col-span-6 flex flex-col justify-center">
+            
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center">
+              <i data-lucide="eye" class="w-4 h-4 mr-1.5 text-slate-400"></i>
+              Live Physical LCD Preview
+            </div>
+
+            <!-- Authentic 16x2 LCD Simulation Box -->
+            <div class="p-6 bg-slate-900 rounded-2xl border-4 border-slate-800 shadow-2xl relative">
+              <div class="flex justify-between items-center text-[10px] text-slate-400 mb-3 font-mono">
+                <span>HD44780 1602 I2C</span>
+                <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot mr-1"></span> I2C ADDR: 0x27</span>
+              </div>
+
+              <div id="virtual-lcd-screen" class="lcd-screen-preview p-5 space-y-2">
+                <!-- Row 1 Preview (16 monospace slots) -->
+                <div class="text-lg sm:text-xl font-mono-lcd whitespace-pre overflow-hidden tracking-wider border-b border-black/20 pb-1" id="lcd-preview-line1">
+                  Welcome to      
+                </div>
+                <!-- Row 2 Preview (16 monospace slots) -->
+                <div class="text-lg sm:text-xl font-mono-lcd whitespace-pre overflow-hidden tracking-wider" id="lcd-preview-line2">
+                  The super Girls 
+                </div>
+              </div>
+
+              <div class="mt-4 flex justify-between text-[11px] text-slate-400">
+                <span>D1 &rarr; SCL (GPIO 5)</span>
+                <span>D2 &rarr; SDA (GPIO 4)</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 3: LED AUTOMATION (TOGGLE ON / OFF)                        -->
+    <!-- ============================================================== -->
+    <div id="tab-content-3" class="space-y-8 hidden">
+      
+      <div class="white-card rounded-2xl p-6 sm:p-8">
+        
+        <div class="flex items-center space-x-3 pb-6 border-b border-slate-100">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 shadow-sm">
+            <i data-lucide="power" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">LED Automation &amp; Actuation</h2>
+            <p class="text-xs text-slate-500">Hardware Pin D3 (GPIO 0) on ESP8266</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mt-6">
+          
+          <!-- LEFT: BIG INTERACTIVE TOGGLE CARD -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center flex flex-col items-center justify-center">
+            
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Hardware LED Control</span>
+            
+            <!-- Visual LED Indicator Orb -->
+            <div id="led-indicator-orb" class="w-24 h-24 rounded-full led-glow-off mb-6 transition-all duration-300 flex items-center justify-center border-4 border-white shadow-inner">
+              <i data-lucide="lightbulb" id="led-bulb-icon" class="w-10 h-10 text-slate-400 transition-colors duration-300"></i>
+            </div>
+
+            <!-- LED Status Text -->
+            <div class="mb-6">
+              <span id="led-status-text" class="text-2xl font-black text-slate-700 tracking-tight font-mono">LED IS OFF</span>
+              <p class="text-xs text-slate-400 mt-1">Pin D3 (GPIO 0) is set to LOW</p>
+            </div>
+
+            <!-- Big Toggle Switch Button -->
+            <button id="led-toggle-btn" onclick="toggleLedState()" 
+              class="relative inline-flex items-center h-14 w-28 rounded-full p-1 transition-colors duration-300 focus:outline-none bg-slate-300 shadow-inner">
+              <span id="led-switch-knob" class="inline-block w-12 h-12 rounded-full bg-white shadow-md transform transition-transform duration-300 translate-x-0 flex items-center justify-center">
+                <i data-lucide="power" class="w-5 h-5 text-slate-500"></i>
+              </span>
+            </button>
+
+            <span class="text-[11px] text-slate-400 mt-4">Click switch to toggle LED ON or OFF</span>
+
+          </div>
+
+          <!-- RIGHT: HARDWARE PIN INFORMATION & SAFETY -->
+          <div class="space-y-4">
+            
+            <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+              <h4 class="font-bold text-slate-800 text-sm flex items-center">
+                <i data-lucide="cpu" class="w-4 h-4 mr-2 text-indigo-600"></i>
+                ESP8266 GPIO Actuator Wiring
+              </h4>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                The LED is wired to <strong>Pin D3 (GPIO 0)</strong> with an appropriate current-limiting resistor (220&Omega; - 330&Omega;) connected to GND.
+              </p>
+              <div class="grid grid-cols-2 gap-2 text-xs font-mono pt-2">
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <span class="text-slate-400 block text-[10px]">PIN</span>
+                  <span class="font-bold text-slate-700">D3 (GPIO 0)</span>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <span class="text-slate-400 block text-[10px]">CURRENT STATE</span>
+                  <span id="led-state-code" class="font-bold text-rose-600">LOW (0)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-2">
+              <h4 class="font-bold text-indigo-900 text-sm flex items-center">
+                <i data-lucide="shield-check" class="w-4 h-4 mr-2 text-indigo-600"></i>
+                Cloud Synchronization Guaranteed
+              </h4>
+              <p class="text-xs text-indigo-800 leading-relaxed">
+                When you flip this toggle, the cloud API `/api/device/led` updates instantaneously. The ESP8266 fetches the state in real-time and actuates the physical relay/LED.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Required Footer Text -->
+  <footer class="bg-white border-t border-slate-200 py-6 px-4 mt-8">
+    <div class="max-w-7xl mx-auto text-center">
+      <p class="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+        Designed and Developed by Renuka , Nisha , utkarsha , Dept. of Electrical Engineering, Gov. Enggineering yavatmal
+      </p>
+      <p class="text-xs text-slate-400 mt-1">
+        The super Girls IoT Project &copy; 2026 | Render Deployable Architecture
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script>
+    // Initialize Lucide icons on load
+    lucide.createIcons();
+  </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "the-super-girls-iot",
+  "version": "1.0.0",
+  "description": "IoT Smart Environment Monitoring and Device Automation - The super Girls",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "iot",
+    "esp8266",
+    "dht11",
+    "lcd1602",
+    "sqlite",
+    "render"
+  ],
+  "author": "Renuka, Nisha, Utkarsha",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.7"
+  }
+}

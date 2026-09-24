@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The super Girls - IoT Portal Login & Register</title>
+  <meta name="description" content="IoT Smart Environment Monitoring & Hardware Automation Portal by The super Girls.">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-100">
+          <i data-lucide="cpu" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">The super Girls</h1>
+          <span class="text-xs font-medium text-indigo-600 tracking-wide uppercase">IoT Portal & Control Hub</span>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-500 pulse-dot"></span>
+          System Online
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md">
+      
+      <!-- Card Container (White Theme) -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+        
+        <!-- Top Banner / Branding -->
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-8 text-center text-white relative">
+          <div class="inline-flex p-3 bg-white/10 rounded-2xl backdrop-blur-md mb-3 border border-white/20">
+            <i data-lucide="activity" class="w-8 h-8 text-white"></i>
+          </div>
+          <h2 class="text-2xl font-extrabold tracking-tight">The super Girls</h2>
+          <p class="text-indigo-100 text-xs mt-1">Smart Environment Monitoring & Automation</p>
+        </div>
+
+        <!-- Tab Switcher (Login / Register) -->
+        <div class="flex border-b border-slate-200 bg-slate-50/50 p-1">
+          <button id="tab-login-btn" onclick="switchAuthTab('login')" class="flex-1 py-2.5 text-center font-semibold text-sm rounded-xl transition-all duration-200 bg-white text-indigo-600 shadow-sm">
+            Sign In
+          </button>
+          <button id="tab-register-btn" onclick="switchAuthTab('register')" class="flex-1 py-2.5 text-center font-semibold text-sm rounded-xl transition-all duration-200 text-slate-500 hover:text-slate-900">
+            Create Account
+          </button>
+        </div>
+
+        <div class="p-6 sm:p-8">
+          
+          <!-- LOGIN FORM -->
+          <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+            <div>
+              <label for="login-email" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Email Address</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="mail" class="w-4 h-4"></i>
+                </div>
+                <input type="email" id="login-email" required placeholder="admin@supergirls.com" 
+                  class="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+              </div>
+            </div>
+
+            <div>
+              <label for="login-password" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Password</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="lock" class="w-4 h-4"></i>
+                </div>
+                <input type="password" id="login-password" required placeholder="••••••••" 
+                  class="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between text-xs pt-1">
+              <span class="text-slate-500">Secure AES & JWT Authentication</span>
+              <span class="text-indigo-600 font-medium">Asia/Kolkata (IST)</span>
+            </div>
+
+            <button type="submit" id="login-submit-btn" class="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-semibold text-sm text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition duration-150 shadow-md shadow-indigo-100 mt-2">
+              <span>Sign In to Dashboard</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </form>
+
+          <!-- REGISTRATION FORM -->
+          <form id="register-form" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+            <div>
+              <label for="reg-name" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Full Name</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="user" class="w-4 h-4"></i>
+                </div>
+                <input type="text" id="reg-name" required placeholder="Renuka / Nisha / Utkarsha" 
+                  class="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+              </div>
+            </div>
+
+            <div>
+              <label for="reg-email" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Email Address</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="mail" class="w-4 h-4"></i>
+                </div>
+                <input type="email" id="reg-email" required placeholder="your.name@enggytl.edu" 
+                  class="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+              </div>
+            </div>
+
+            <div>
+              <label for="reg-password" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Password</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <i data-lucide="lock" class="w-4 h-4"></i>
+                </div>
+                <input type="password" id="reg-password" required minlength="6" placeholder="Min 6 characters" 
+                  class="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+              </div>
+              <p class="text-[11px] text-slate-500 mt-1">Must be at least 6 characters</p>
+            </div>
+
+            <button type="submit" id="register-submit-btn" class="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-xl font-semibold text-sm text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition duration-150 shadow-md shadow-indigo-100 mt-2">
+              <span>Create Account</span>
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+            </button>
+          </form>
+
+        </div>
+
+        <!-- Hardware System Info Footer in card -->
+        <div class="bg-slate-50 border-t border-slate-100 p-4 text-center">
+          <div class="flex items-center justify-center space-x-4 text-xs text-slate-500 font-medium">
+            <span class="flex items-center"><i data-lucide="wifi" class="w-3.5 h-3.5 mr-1 text-slate-400"></i> ESP8266</span>
+            <span class="flex items-center"><i data-lucide="thermometer" class="w-3.5 h-3.5 mr-1 text-slate-400"></i> DHT11</span>
+            <span class="flex items-center"><i data-lucide="monitor" class="w-3.5 h-3.5 mr-1 text-slate-400"></i> 16x2 LCD</span>
+            <span class="flex items-center"><i data-lucide="lightbulb" class="w-3.5 h-3.5 mr-1 text-slate-400"></i> Smart LED</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Required Footer Text -->
+  <footer class="bg-white border-t border-slate-200 py-6 px-4">
+    <div class="max-w-7xl mx-auto text-center">
+      <p class="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+        Designed and Developed by Renuka , Nisha , utkarsha , Dept. of Electrical Engineering, Gov. Enggineering yavatmal
+      </p>
+      <p class="text-xs text-slate-400 mt-1">
+        The super Girls IoT Project &copy; 2026 | Render Deployable Architecture
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/auth.js"></script>
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
