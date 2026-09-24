@@ -39,9 +39,8 @@ const char* ssid     = "IoT";
 const char* password = "12345678";
 
 // Backend Server URL:
-// Option 1 (Local Testing): Use your computer's local Wi-Fi IP (Detected: 192.168.10.124)
-// Option 2 (Render Cloud): Use your live Render URL (e.g., "https://the-super-girls-iot.onrender.com")
-const char* serverUrl = "http://192.168.10.124:3000";
+// Configured for live Render Cloud Deployment:
+const char* serverUrl = "https://iot-project-pn6x.onrender.com";
 
 // API endpoints
 String sensorDataEndpoint = String(serverUrl) + "/api/sensor-data";

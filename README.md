@@ -118,9 +118,8 @@ This application is configured for 100% turnkey deployment on **Render**:
    - `NODE_ENV`: `production`
    - `JWT_SECRET`: `supergirls_iot_secret_key_2026_secured`
    - `API_KEY`: `supergirls_esp8266_token_secure`
-5. Click **Create Web Service**.
-6. Once deployed, Render will provide a live URL such as `https://the-super-girls-iot.onrender.com`.
-7. Paste this URL into your Arduino `.ino` sketch (`serverUrl`), re-upload to your ESP8266, and your project is globally connected!
+6. Live Deployed URL: **`https://iot-project-pn6x.onrender.com`**.
+7. The Arduino `.ino` sketch is configured with `https://iot-project-pn6x.onrender.com`. Flash it to your ESP8266, and your hardware is globally connected!
 
 ---
 
